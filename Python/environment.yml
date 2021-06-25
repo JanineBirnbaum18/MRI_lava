@@ -1,0 +1,12 @@
+name: three-phase-flow
+channels:
+  - defaults
+dependencies:
+  - numpy
+  - matplotlib
+  - opencv
+  - pandas
+  - jupyter
+  - pip
+  - pip:
+    - pydicom
