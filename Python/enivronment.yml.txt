@@ -1,0 +1,15 @@
+name: getfem
+channels:
+  - defaults
+dependencies:
+  - numpy
+  - matplotlib
+  - opencv
+  - pandas
+  - openpyxl
+  - jupyter
+  - pip
+  - pip:
+    - pydicom
+    - pybind11
+    - MeshPy
