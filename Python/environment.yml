@@ -6,7 +6,10 @@ dependencies:
   - matplotlib
   - opencv
   - pandas
+  - openpyxl
   - jupyter
   - pip
   - pip:
     - pydicom
+    - pybind11
+    - MeshPy
