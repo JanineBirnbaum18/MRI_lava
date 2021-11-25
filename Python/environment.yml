@@ -8,6 +8,7 @@ dependencies:
   - pandas
   - openpyxl
   - jupyter
+  - h5py
   - pip
   - pip:
     - pydicom
