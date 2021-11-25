@@ -10,7 +10,7 @@ from getfem import *
 import numpy as np
 from scipy import interpolate as sciinterp
 
-def gfmodel(x_scale,y_scale,vels,mesh,spl,spl2d_u,spl2d_v,mask,flow_front,g,rho0,rhoh,K,tau_y,n,eta_max): 
+def gfmodel(x_scale,y_scale,vels,mesh,spl,spl2d_u,spl2d_v,mask,flow_front,g,rhoh,K,tau_y,n,eta_max): 
     
     gfmesh = gf.Mesh('empty', 2)
     
@@ -56,7 +56,8 @@ def gfmodel(x_scale,y_scale,vels,mesh,spl,spl2d_u,spl2d_v,mask,flow_front,g,rho0
     #md.add_initialized_data('mu', [mu])
     md.add_initialized_data('lambda', [0])
     md.add_initialized_data('g', [0,g])
-    md.add_initialized_fem_data('rho',mfp,[(rhoh-rho0)/spl(x)*y + rho0])
+    #md.add_initialized_fem_data('rho',mfp,[(rhoh-rho0)/spl(x)*y + rho0])
+    md.add_initialized_data('rho',[rhoh])
     
     mu_exp = 'min(' + str(eta_max) + ', ' + str(tau_y) + '/t + ' + str(K) + '*pow(t, ' + str(n-1) + '))'
     gf.asm_define_function('mu', 1, mu_exp)
@@ -65,11 +66,14 @@ def gfmodel(x_scale,y_scale,vels,mesh,spl,spl2d_u,spl2d_v,mask,flow_front,g,rho0
     md.add_linear_incompressibility_brick(mim, 'u', 'p') 
     
     # Apply BCs
+    vels_smooth = vels.copy()
+    vels_smooth[mask==0,:] = 0
+
     u_dat_smooth = spl2d_u.ev(D[0,:],D[1,:])
-    u_dat_smooth[u_dat_smooth>np.max(vels[:,:,0])] = np.max(vels[:,:,0])
+    u_dat_smooth[u_dat_smooth>np.max(vels_smooth[:,:,0])] = np.max(vels_smooth[:,:,0])
     
     v_dat_smooth = spl2d_v.ev(D[0,:],D[1,:])
-    v_dat_smooth[v_dat_smooth>np.max(vels[:,:,1])] = np.max(vels[:,:1])
+    v_dat_smooth[v_dat_smooth>np.max(vels_smooth[:,:,1])] = np.max(vels_smooth[:,:1])
     
     md.add_initialized_fem_data('leftdata', mfp, [u_dat_smooth,v_dat_smooth])
     md.add_initialized_fem_data('botdata', mfp, [0*ones,0*ones])
@@ -91,7 +95,7 @@ def gfmodel(x_scale,y_scale,vels,mesh,spl,spl2d_u,spl2d_v,mask,flow_front,g,rho0
         
     # solve all in one
     try: 
-        md.solve('max_res', 1E-9, 'max_iter', 100, 'very_noisy'); # Newton iteration for nonlinearity
+        md.solve('max_res', 1E-9, 'max_iter', 100); # Newton iteration for nonlinearity
     except:
         print("didn't solve")
     # Retrieve variables
