@@ -15,6 +15,7 @@ from matplotlib import cm
 import pandas as pd
 import numpy as np
 from scipy import interpolate as sciinterp
+import h5py
 
 from read_dicom import *
 from build_mesh import *
@@ -77,8 +78,8 @@ def EnKF(A_EnKF, data, dataerr):
 # Forward model 
 def forward_model(mu, x_scale, y_scale, vels, mesh, spl, spl2d_u, spl2d_v, mask, frame, g, eta_max, endframe):
     rhoh, K, tau_y, n = mu
-    print(x_scale,y_scale,vels,mesh,spl,spl2d_u,spl2d_v,mask,
-          frame>endframe,g,rhoh,K,tau_y,n,eta_max)
+    #print(x_scale,y_scale,vels,mesh,spl,spl2d_u,spl2d_v,mask,
+    #      frame>endframe,g,rhoh,K,tau_y,n,eta_max)
     u_sol, v_sol, P_sol = gfmodel(x_scale,y_scale,vels,mesh,spl,spl2d_u,spl2d_v,mask,
                                   frame>endframe,g,rhoh,K,tau_y,n,eta_max)    
     return u_sol, v_sol, P_sol
@@ -269,5 +270,11 @@ print('All done')
 
 # Write results to files
 
-param_est.tofile('param_est_' + path_mag + '.txt')
-conv.tofile('conv_' + path_mag + '.txt')
+f = h5py.File(path_mag + '.hdf5', 'w')
+dset1 = f.create_dataset('param_est', (npar, nens, len(frames_dat)), data=param_est)
+dset1.attrs['npar'] = 4
+dset1.attrs['nens'] = nens
+dset1.attrs['frames'] = frames_dat
+dset2 = f.create_dataset('conv', (len(frames_dat),nitr), data=conv)
+dset2.attrs['nitr'] = nitr
+f.close()
